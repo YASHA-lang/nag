@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>GMIT Smart Campus Navigation</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;600&display=swap');
+
+  /* Reset and base */
+  * {
+    box-sizing: border-box;
+  }
+  body {
+    margin: 0;
+    font-family: 'Poppins', sans-serif;
+    background: #f4f9ff;
+    color: #1a1a1a;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+  }
+
+  header {
+    background: linear-gradient(90deg, #004677, #007ac1);
+    color: white;
+    padding: 1.5rem 1rem;
+    text-align: center;
+    font-weight: 600;
+    font-size: 2rem;
+    letter-spacing: 0.05em;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  }
+
+  main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    max-width: 1200px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+    width: 100%;
+  }
+
+  .search-container {
+    max-width: 500px;
+    margin: 0 auto 2rem auto;
+    width: 100%;
+  }
+
+  .search-input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    font-size: 1.1rem;
+    border: 2px solid #007ac1;
+    border-radius: 30px;
+    outline: none;
+    transition: border-color 0.3s ease;
+  }
+  .search-input:focus {
+    border-color: #004677;
+  }
+
+  .content-wrapper {
+    display: flex;
+    gap: 2rem;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .map-container {
+    flex: 1;
+    min-width: 300px;
+    max-width: 700px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+    padding: 1rem;
+    user-select: none;
+  }
+
+  svg {
+    width: 100%;
+    height: auto;
+  }
+
+  .tooltip {
+    position: absolute;
+    background: #004677cc;
+    color: white;
+    padding: 0.3rem 0.6rem;
+    border-radius: 6px;
+    font-weight: 600;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    font-size: 0.85rem;
+    white-space: nowrap;
+    z-index: 10;
+  }
+
+  .info-panel {
+    flex: 1;
+    min-width: 280px;
+    max-width: 400px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+    padding: 1.5rem 2rem;
+    font-size: 1rem;
+    line-height: 1.5;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .info-panel h2 {
+    margin-top: 0;
+    margin-bottom: 1rem;
+    font-weight: 600;
+    border-bottom: 2px solid #007ac1;
+    padding-bottom: 0.4rem;
+  }
+
+  .info-panel p {
+    flex-grow: 1;
+  }
+
+  .info-panel .directions {
+    margin-top: 1rem;
+    background: #e0f0ff;
+    border-radius: 8px;
+    padding: 1rem;
+    font-weight: 500;
+    color: #004677;
+    white-space: pre-line;
+  }
+
+  footer {
+    text-align: center;
+    padding: 1rem;
+    font-size: 0.9rem;
+    color: #777;
+    background: #f0f6fc;
+  }
+
+  /* Building styles */
+  .building {
+    cursor: pointer;
+    fill: #67a9e8;
+    stroke: #004677;
+    stroke-width: 2;
+    transition: fill 0.3s ease;
+  }
+
+  .building:hover {
+    fill: #004677;
+  }
+
+  .building.active {
+    fill: #ff6f61;
+    stroke: #b33a3a;
+    stroke-width: 3;
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .content-wrapper {
+      flex-direction: column;
+      align-items: center;
+    }
+    .map-container, .info-panel {
+      max-width: 100%;
+    }
+  }
+
+  .virtual-tour {
+            text-align: center;
+            margin: 20px;
+        }
+
+        .tour-container {
+            margin: auto;
+            width: 80%;
+        }
+
+        .tour-container img {
+            width: 100%;
+            border-radius: 10px;
+        }
+
+        .start-tour {
+            display: block;
+            margin-top: 10px;
+            padding: 12px;
+            background-color: #64ffda;
+            color: black;
+            text-decoration: none;
+            font-weight: bold;
+            border-radius: 5px;
+        }
+
+        .start-tour:hover {
+            background-color: #52e0c4;
+        }
+
+        .vr-container {
+            width: 100%;
+            height: 500px;
+            display: none;
+        }
+
+        .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 20px;
+      background: #d7dbda;
+      font-size: 15px;
+      font-weight: 600;
+    }
+
+    .contact-info,
+    .code-info {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .contact-info i,
+    .contact-info span {
+      display: inline-flex;
+      align-items: center;
+    }
+
+    .contact-info i {
+      margin-right: 5px;
+    }
+
+    .login-btn {
+      background-color: #5d1f1f;
+      color: white;
+      padding: 6px 15px;
+      border: none;
+      border-radius: 4px;
+      font-weight: bold;
+      cursor: pointer;
+      margin-left: 15px;
+    }
+
+    .divider {
+      margin: 0 8px;
+      color: #e3dfdf;
+    }
+</style>
+</head>
+<body>
+  <div class="top-bar">
+    <div class="contact-info">
+      <span><i class="fas fa-phone-alt"></i>18001237099</span>
+      <span class="divider">|</span>
+      <span><i class="fas fa-paper-plane"></i>info@gmu.ac.in</span>
+    </div>
+
+    <div class="code-info">
+      <span>KCET Codes : <strong>B.Tech – E303</strong></span>
+      <span class="divider">|</span>
+      <span><strong>MCA – C568</strong></span>
+      <span class="divider">|</span>
+      <span><strong>MBA – B086</strong></span>
+      <button class="login-btn">LOGIN</button>
+    </div>
+  </div>
+
+<header>
+  GMIT Smart Campus Navigation
+</header>
+
+<main>
+  
+  <section class="virtual-tour">
+    <h2>Virtual Tour</h2>
+    <p>Explore our campus with a 360° virtual tour.</p>
+    <div class="tour-container">
+        <img src="https://www.gmit.ac.in/images/college1.jpg" alt="GM University College">
+        <a href="#" class="start-tour" onclick="startVR()">Click to start the virtual tour</a>
+    </div>
+</section>
+
+<section id="vr-section" class="vr-container">
+    <a-scene>
+        <a-sky src="https://cdn.aframe.io/360-image-gallery-boilerplate/img/sechelt.jpg"></a-sky>
+    </a-scene>
+</section>
+  <div class="search-container">
+    <input type="text" id="searchInput" class="search-input" placeholder="Search for a building or facility (e.g. Library, Admin Block)" autocomplete="off" />
+  </div>
+
+  <div class="content-wrapper">
+    <div class="map-container" id="mapContainer" aria-label="Campus Map" role="region">
+      <!-- Inline SVG campus map -->
+      <svg viewBox="0 0 800 500" xmlns="http://www.w3.org/2000/svg" aria-labelledby="campusMapTitle" role="img">
+        <title id="campusMapTitle">GMIT Campus Map</title>
+        <!-- Quadrangle building -->
+        <rect class="building" id="quadrangle" x="50" y="50" width="200" height="130" rx="15" ry="15" />
+        <text x="150" y="120" fill="#fff" font-size="20" font-weight="700" text-anchor="middle" pointer-events="none">Quadrangle</text>
+
+        <!-- Library -->
+        <rect class="building" id="library" x="300" y="80" width="180" height="100" rx="12" ry="12" />
+        <text x="390" y="135" fill="#fff" font-size="20" font-weight="700" text-anchor="middle" pointer-events="none">Library</text>
+
+        <!-- Administrative Block -->
+        <rect class="building" id="adminBlock" x="520" y="70" width="200" height="110" rx="15" ry="15" />
+        <text x="620" y="130" fill="#fff" font-size="18" font-weight="700" text-anchor="middle" pointer-events="none">Admin Block</text>
+
+        <!-- Sports Complex -->
+        <rect class="building" id="sportsComplex" x="50" y="220" width="250" height="130" rx="12" ry="12" />
+        <text x="175" y="290" fill="#fff" font-size="20" font-weight="700" text-anchor="middle" pointer-events="none">Sports Complex</text>
+
+        <!-- Cafeteria -->
+        <rect class="building" id="cafeteria" x="330" y="220" width="180" height="110" rx="15" ry="15" />
+        <text x="420" y="280" fill="#fff" font-size="20" font-weight="700" text-anchor="middle" pointer-events="none">Cafeteria</text>
+
+        <!-- Auditorium -->
+        <rect class="building" id="auditorium" x="550" y="220" width="175" height="120" rx="18" ry="18" />
+        <text x="637" y="280" fill="#fff" font-size="18" font-weight="700" text-anchor="middle" pointer-events="none">Auditorium</text>
+      </svg>
+    </div>
+
+    <aside class="info-panel" id="infoPanel" aria-live="polite">
+      <h2>Welcome to GMIT</h2>
+      <p>Use the search box or click on a building on the map to see more information and navigation directions.</p>
+    </aside>
+  </div>
+</main>
+
+<footer>
+  © 2024 GMIT College | Smart Campus Navigation System
+</footer>
+
+<script>
+  (function() {
+    const buildings = {
+      quadrangle: {
+        name: "Quadrangle",
+        description: "The Quadrangle is the central academic building housing multiple departments and lecture halls.",
+        directions: "From main gate, walk straight ahead for 200m. The Quadrangle is the large building with glass facade on your left."
+      },
+      library: {
+        name: "Library",
+        description: "The Library contains thousands of books, digital resources, and quiet study zones.",
+        directions: "From Quadrangle, walk east for 150m. The Library is on the right adjacent to the Admin Block."
+      },
+      adminBlock: {
+        name: "Administrative Block",
+        description: "The Admin Block manages all student services, admissions, and staff offices.",
+        directions: "From main gate, turn right and walk 100m north. The Admin Block is a modern building with blue panels."
+      },
+      sportsComplex: {
+        name: "Sports Complex",
+        description: "The Sports Complex includes gym facilities, courts, and spaces for various sports activities.",
+        directions: "From the Quadrangle, walk south along the path for 150m. The Sports Complex will be on your right."
+      },
+      cafeteria: {
+        name: "Cafeteria",
+        description: "The Cafeteria serves a variety of meals and refreshments for students and staff.",
+        directions: "From the Library, walk south for 100m. The Cafeteria is the brown building with outdoor seating."
+      },
+      auditorium: {
+        name: "Auditorium",
+        description: "The Auditorium hosts seminars, guest lectures, and campus events.",
+        directions: "From the Admin Block, walk south-east for 130m. The Auditorium is the large oval-shaped building."
+      }
+    };
+
+    const searchInput = document.getElementById('searchInput');
+    const infoPanel = document.getElementById('infoPanel');
+    const mapContainer = document.getElementById('mapContainer');
+
+    // Remove active class from all buildings
+    function clearActiveBuildings() {
+      document.querySelectorAll('.building.active').forEach(b => b.classList.remove('active'));
+    }
+
+    // Show building info in panel
+    function showBuildingInfo(buildingKey) {
+      const building = buildings[buildingKey];
+      if (!building) return;
+      infoPanel.innerHTML = `
+        <h2>${building.name}</h2>
+        <p>${building.description}</p>
+        <div class="directions"><strong>Directions:</strong><br>${building.directions}</div>
+      `;
+      clearActiveBuildings();
+      const buildingElem = document.getElementById(buildingKey);
+      if(buildingElem) buildingElem.classList.add('active');
+    }
+
+    // Search for building on user input
+    function handleSearch() {
+      const query = searchInput.value.trim().toLowerCase();
+      if (query === '') {
+        infoPanel.innerHTML = `
+          <h2>Welcome to GMIT</h2>
+          <p>Use the search box or click on a building on the map to see more information and navigation directions.</p>
+        `;
+        clearActiveBuildings();
+        return;
+      }
+
+      // Find building by matching name or keywords
+      const foundKey = Object.keys(buildings).find(key => {
+        const b = buildings[key];
+        return b.name.toLowerCase().includes(query);
+      });
+
+      if (foundKey) {
+        showBuildingInfo(foundKey);
+      } else {
+        infoPanel.innerHTML = `
+          <h2>No Results Found</h2>
+          <p>No building or facility found matching your search: "<em>${query}</em>". Please try a different keyword.</p>
+        `;
+        clearActiveBuildings();
+      }
+    }
+
+    // Click event on map buildings
+    function handleBuildingClick(evt) {
+      const id = evt.target.id;
+      if (id && buildings[id]) {
+        showBuildingInfo(id);
+        searchInput.value = buildings[id].name;
+      }
+    }
+
+    // Attach event listeners
+    searchInput.addEventListener('input', handleSearch);
+    document.querySelectorAll('.building').forEach(building => {
+      building.addEventListener('click', handleBuildingClick);
+    });
+
+  })();
+</script>
+
+</body>
+</html>
+
